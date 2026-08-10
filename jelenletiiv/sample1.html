@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jelenléti ív · Jelszavas védelem</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: white;
+            padding: 30px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .ceg-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1a3c5e;
+            padding-bottom: 15px;
+        }
+        .ceg-header .cegnev {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a3c5e;
+            letter-spacing: 2px;
+        }
+        .ceg-header .cegnev span {
+            font-weight: 300;
+            color: #4a7a9e;
+        }
+        .ceg-header .cegaddress {
+            font-size: 14px;
+            color: #555;
+            margin-top: 2px;
+        }
+        .ceg-header .cim {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a3c5e;
+            margin-top: 10px;
+        }
+        .ceg-header .idoszak {
+            font-size: 14px;
+            color: #555;
+            margin-top: 4px;
+        }
+        .ceg-header .idoszak input {
+            border: none;
+            border-bottom: 1.5px dashed #7a9bcb;
+            background: transparent;
+            padding: 2px 8px;
+            font-size: 14px;
+            min-width: 150px;
+            text-align: center;
+        }
+        .ceg-header .idoszak input:focus {
+            outline: none;
+            border-bottom: 2px solid #1a3c5e;
+        }
+
+        .szemely-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 40px;
+            background: #f8faff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: 1px solid #d0dbe8;
+            margin-bottom: 18px;
+        }
+        .szemely-info label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a3c5e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .szemely-info input {
+            border: none;
+            border-bottom: 1.5px dashed #7a9bcb;
+            background: transparent;
+            padding: 4px 6px;
+            font-size: 14px;
+            min-width: 160px;
+            transition: 0.2s;
+            color: #1a3c5e;
+            font-weight: 500;
+        }
+        .szemely-info input:focus {
+            outline: none;
+            border-bottom: 2px solid #1a3c5e;
+            background: #fff;
+        }
+        .szemely-info input::placeholder {
+            color: #bbb;
+            font-style: italic;
+            font-weight: 300;
+        }
+        .szemely-info input:disabled {
+            opacity: 0.7;
+            background: #f5f7fa;
+            border-bottom: 1px solid #ccc;
+            color: #555;
+            font-weight: 400;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 6px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 900px;
+        }
+        th {
+            background: #1a3c5e;
+            color: white;
+            padding: 8px 5px;
+            text-align: center;
+            font-weight: 600;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+        td {
+            border: 1px solid #bcc9db;
+            padding: 3px 3px;
+            text-align: center;
+            vertical-align: middle;
+            transition: background 0.2s;
+        }
+        td input {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 5px 2px;
+            text-align: center;
+            font-size: 13px;
+            font-family: inherit;
+            transition: 0.15s;
+            border-radius: 3px;
+            color: #1a3c5e;
+            font-weight: 500;
+        }
+        td input:hover {
+            background: rgba(255,255,255,0.5);
+        }
+        td input:focus {
+            outline: 2px solid #1a3c5e;
+            outline-offset: -1px;
+            background: #fffbe6;
+            color: #1a3c5e;
+            font-weight: 600;
+        }
+        td input::placeholder {
+            color: transparent !important;
+            font-style: normal !important;
+        }
+        td input:disabled {
+            opacity: 0.8;
+            background: transparent;
+            cursor: not-allowed;
+            color: #1a3c5e;
+            font-weight: 500;
+        }
+        td input:disabled::placeholder {
+            color: transparent !important;
+        }
+
+        .col-sor {
+            min-width: 36px;
+            width: 36px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.25s;
+            font-size: 12px;
+            color: #1a3c5e;
+        }
+        .col-sor:hover {
+            filter: brightness(0.93);
+        }
+        .col-sor.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .col-ido {
+            min-width: 60px;
+            width: 60px;
+        }
+        .col-alairas {
+            min-width: 70px;
+            width: 70px;
+        }
+        .col-tavollet {
+            min-width: 50px;
+            width: 50px;
+        }
+
+        .row-white td { background: white; }
+        .row-green td { background: #d4edda; }
+        .row-red td { background: #f8d7da; }
+        .row-yellow td { background: #fff3cd; }
+
+        .row-green td input { background: transparent; color: #155724; }
+        .row-red td input { background: transparent; color: #721c24; }
+        .row-yellow td input { background: transparent; color: #856404; }
+        .row-white td input { background: transparent; color: #1a3c5e; }
+        .row-green td input:disabled { background: #d4edda; color: #155724; }
+        .row-red td input:disabled { background: #f8d7da; color: #721c24; }
+        .row-yellow td input:disabled { background: #fff3cd; color: #856404; }
+        .row-white td input:disabled { background: white; color: #1a3c5e; }
+
+        .osszesito {
+            margin-top: 16px;
+            border: 1px solid #bcc9db;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .osszesito table {
+            min-width: unset;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .osszesito td {
+            padding: 6px 12px;
+            border: 1px solid #bcc9db;
+            text-align: left;
+        }
+        .osszesito td:last-child {
+            text-align: center;
+            min-width: 60px;
+            width: 60px;
+        }
+        .osszesito .ossz-cim {
+            font-weight: 600;
+            background: #e9eff7;
+            text-align: center;
+        }
+        .osszesito input {
+            border: none;
+            background: transparent;
+            padding: 4px 8px;
+            text-align: center;
+            font-size: 13px;
+            font-family: inherit;
+            width: 100%;
+            min-width: 60px;
+            color: #1a3c5e;
+            font-weight: 500;
+        }
+        .osszesito input:focus {
+            outline: 2px solid #1a3c5e;
+            outline-offset: -1px;
+            background: #fffbe6;
+            border-radius: 3px;
+            color: #1a3c5e;
+            font-weight: 600;
+        }
+        .osszesito input::placeholder {
+            color: transparent !important;
+            font-style: normal !important;
+        }
+        .osszesito input:disabled {
+            opacity: 0.8;
+            background: transparent;
+            cursor: not-allowed;
+            color: #1a3c5e;
+            font-weight: 500;
+        }
+        .osszesito input:disabled::placeholder {
+            color: transparent !important;
+        }
+        .osszesito .mertekegyseg {
+            color: #555;
+            font-size: 12px;
+            text-align: center;
+            min-width: 30px;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 24px 0 10px;
+        }
+        .actions button {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #1a3c5e;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 14px rgba(26,60,94,0.3);
+        }
+        .actions button.print {
+            background: #2a6d4a;
+        }
+        .actions button.print:hover {
+            background: #1d5236;
+        }
+        .actions button.edit-mode {
+            background: #3a6b8a;
+        }
+        .actions button.edit-mode.active {
+            background: #c44536;
+        }
+        .actions button.edit-mode.active:hover {
+            background: #a33528;
+        }
+        .actions button.edit-mode:before {
+            content: "✏️ ";
+        }
+        .actions button.edit-mode.active:before {
+            content: "💾 ";
+        }
+
+        .footer-note {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            margin-top: 18px;
+            border-top: 1px solid #dde3ed;
+            padding-top: 14px;
+        }
+
+        /* JELSZÓ MODAL */
+        .password-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .password-overlay.active {
+            display: flex;
+        }
+        .password-modal {
+            background: white;
+            padding: 35px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 380px;
+            width: 90%;
+        }
+        .password-modal h2 {
+            font-size: 20px;
+            color: #1a3c5e;
+            margin-bottom: 8px;
+        }
+        .password-modal p {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 18px;
+        }
+        .password-modal input {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 18px;
+            text-align: center;
+            border: 2px solid #d0dbe8;
+            border-radius: 6px;
+            outline: none;
+            transition: 0.2s;
+            letter-spacing: 4px;
+            background: white;
+            color: #1a3c5e;
+        }
+        .password-modal input:focus {
+            border-color: #1a3c5e;
+            box-shadow: 0 0 0 3px rgba(26, 60, 94, 0.2);
+        }
+        .password-modal input:disabled {
+            opacity: 1;
+            background: white;
+            cursor: text;
+        }
+        .password-modal .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+        .password-modal .modal-buttons button {
+            padding: 8px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .password-modal .modal-buttons .confirm {
+            background: #c44536;
+            color: white;
+        }
+        .password-modal .modal-buttons .confirm:hover {
+            background: #a33528;
+        }
+        .password-modal .modal-buttons .cancel {
+            background: #ccc;
+            color: #333;
+        }
+        .password-modal .modal-buttons .cancel:hover {
+            background: #bbb;
+        }
+        .password-modal .error-msg {
+            color: #d32f2f;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+        .password-modal .error-msg.show {
+            display: block;
+        }
+
+        @media print {
+            body { background: white; padding: 8px; margin: 0; }
+            .container { box-shadow: none; padding: 10px 12px; border-radius: 0; }
+            .actions { display: none !important; }
+            .footer-note { display: none; }
+            .password-overlay { display: none !important; }
+            .szemely-info input { border-bottom: 1px solid #999; }
+            .szemely-info input::placeholder { color: transparent !important; }
+            td input::placeholder { color: transparent !important; font-style: normal !important; }
+            td input { border: none; padding: 3px 2px; font-size: 11px; background: transparent !important; color: #000 !important; }
+            td input:focus { outline: none; background: transparent !important; }
+            .osszesito input::placeholder { color: transparent !important; }
+            .osszesito input { border: none; background: transparent !important; color: #000 !important; }
+            th { background: #1a3c5e !important; color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .col-sor { background: #f4f7fb !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .row-green td { background: #d4edda !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .row-red td { background: #f8d7da !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .row-yellow td { background: #fff3cd !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .row-white td { background: white !important; }
+            .osszesito .ossz-cim { background: #e9eff7 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .szemely-info { background: #f8faff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .ceg-header { border-bottom-color: #1a3c5e !important; }
+            table { font-size: 11px; }
+            td, th { padding: 2px 3px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="jelentletiIv">
+
+    <div class="ceg-header">
+        <div class="cegnev">SZENT KRISTÓF <span>SZAKRENDELŐ</span></div>
+        <div class="cegaddress">BUDAPEST • ÚJBUDA</div>
+        <div class="cim">Jelenléti ív</div>
+        <div class="idoszak">
+            Időszak: <input type="month" id="honapValaszto" value="2026-08">
+        </div>
+    </div>
+
+    <div class="szemely-info">
+        <label>Név: <input type="text" id="nevInput" placeholder="teljes név" value=""></label>
+        <label>Szervezeti egység: <input type="text" id="szervezetInput" placeholder="pl. fogászat" value=""></label>
+    </div>
+
+    <div class="table-wrap">
+        <table id="jelentletiTabla">
+            <thead>
+                <tr>
+                    <th class="col-sor">Nap</th>
+                    <th class="col-ido">Érkezés</th>
+                    <th class="col-ido">Távozás</th>
+                    <th class="col-alairas">Aláírás</th>
+                    <th class="col-tavollet">Szabadság</th>
+                    <th class="col-tavollet">Betegség</th>
+                    <th class="col-tavollet">Hiv. táv.lét</th>
+                    <th class="col-tavollet">Igazolatlan</th>
+                </tr>
+            </thead>
+            <tbody id="tablaTest"></tbody>
+        </table>
+    </div>
+
+    <!-- ÖSSZESÍTŐ RÉSZ -->
+    <div class="osszesito">
+        <table>
+            <tr><td class="ossz-cim" colspan="3">Összesen:</td></tr>
+            <tr><td style="width:50%;">Munkahelyen eltöltött idő</td><td style="width:25%;"><input type="text" id="osszMunkaido" placeholder="óra"></td><td class="mertekegyseg" style="width:25%;">óra</td></tr>
+            <tr><td>Szabadság</td><td><input type="text" id="osszSzabadsag" placeholder="nap"></td><td class="mertekegyseg">nap</td></tr>
+            <tr><td>Betegség</td><td><input type="text" id="osszBetegseg" placeholder="nap"></td><td class="mertekegyseg">nap</td></tr>
+            <tr><td>Egyéb idő, Előző havi egyenleg</td><td><input type="text" id="osszEgyeb" placeholder="óra"></td><td class="mertekegyseg">óra</td></tr>
+            <tr><td><strong>Összesen</strong></td><td><input type="text" id="osszOsszesen" placeholder="óra" style="font-weight:700;"></td><td class="mertekegyseg">óra</td></tr>
+            <tr><td>Étkezési szünet</td><td><input type="text" id="osszEtkezes" placeholder="óra"></td><td class="mertekegyseg">óra</td></tr>
+            <tr><td><strong>Munkaidő összesen</strong></td><td><input type="text" id="osszMunkaidoOsszesen" placeholder="óra" style="font-weight:700;"></td><td class="mertekegyseg">óra</td></tr>
+            <tr><td>Törvényes munkaidő</td><td><input type="text" id="osszTorvenyes" placeholder="óra"></td><td class="mertekegyseg">óra</td></tr>
+            <tr><td>Eltérés</td><td><input type="text" id="osszEltérés" placeholder="óra"></td><td class="mertekegyseg">óra</td></tr>
+        </table>
+    </div>
+
+    <div class="actions">
+        <button class="edit-mode" id="editToggleBtn">Szerkesztés</button>
+        <button class="print" onclick="window.print()">🖨️ Nyomtatás</button>
+    </div>
+
+    <div class="footer-note">
+        ⚡ Kattints a napszámra a szín váltásához · Automatikus mentés
+    </div>
+</div>
+
+<!-- JELSZÓ MODAL (SZERKESZTÉSHEZ) -->
+<div class="password-overlay" id="passwordOverlay">
+    <div class="password-modal">
+        <h2>🔒 Jelszó szükséges</h2>
+        <p>Add meg a jelszót a szerkesztéshez (1111)</p>
+        <input type="password" id="jelszoInput" placeholder="●●●●" maxlength="10" autocomplete="off">
+        <div class="error-msg" id="errorMsg">❌ Hibás jelszó! Próbáld újra.</div>
+        <div class="modal-buttons">
+            <button class="cancel" onclick="jelszoModalBezar()">Mégse</button>
+            <button class="confirm" onclick="jelszoEllenorzes()">Szerkesztés</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function() {
+        const STORAGE_KEY = 'jelentletiIv_data_v10';
+        const JELSZO = '1111';
+
+        let sorok = [];
+        let aktualisEv = 2026;
+        let aktualisHo = 7;
+
+        let szerkesztesMod = false;
+
+        const SZIN_CKLUS = ['white', 'green', 'red', 'yellow'];
+        const SZIN_OSZTALY = {
+            'white': 'row-white',
+            'green': 'row-green',
+            'red': 'row-red',
+            'yellow': 'row-yellow'
+        };
+
+        function kovetkezoSzin(jelenlegi) {
+            const index = SZIN_CKLUS.indexOf(jelenlegi);
+            if (index === -1 || index === SZIN_CKLUS.length - 1) return SZIN_CKLUS[0];
+            return SZIN_CKLUS[index + 1];
+        }
+
+        function getNapokSzama(ev, ho) {
+            return new Date(ev, ho + 1, 0).getDate();
+        }
+
+        function letrehozSorokat(ev, ho, meglevoSorok) {
+            const napokSzama = getNapokSzama(ev, ho);
+            const ujSorok = [];
+            for (let i = 0; i < napokSzama; i++) {
+                if (meglevoSorok && i < meglevoSorok.length) {
+                    const regi = meglevoSorok[i];
+                    ujSorok.push({
+                        erkezes: regi.erkezes || '',
+                        tavozas: regi.tavozas || '',
+                        alairas: regi.alairas || '',
+                        szabadsag: regi.szabadsag || '',
+                        betegseg: regi.betegseg || '',
+                        hivatalos: regi.hivatalos || '',
+                        igazolatlan: regi.igazolatlan || '',
+                        szin: regi.szin || 'white'
+                    });
+                } else {
+                    ujSorok.push({
+                        erkezes: '',
+                        tavozas: '',
+                        alairas: '',
+                        szabadsag: '',
+                        betegseg: '',
+                        hivatalos: '',
+                        igazolatlan: '',
+                        szin: 'white'
+                    });
+                }
+            }
+            return ujSorok;
+        }
+
+        function mentes() {
+            try {
+                const data = {
+                    sorok,
+                    aktualisEv,
+                    aktualisHo,
+                    nev: document.getElementById('nevInput').value,
+                    szervezet: document.getElementById('szervezetInput').value,
+                    osszMunkaido: document.getElementById('osszMunkaido').value,
+                    osszSzabadsag: document.getElementById('osszSzabadsag').value,
+                    osszBetegseg: document.getElementById('osszBetegseg').value,
+                    osszEgyeb: document.getElementById('osszEgyeb').value,
+                    osszOsszesen: document.getElementById('osszOsszesen').value,
+                    osszEtkezes: document.getElementById('osszEtkezes').value,
+                    osszMunkaidoOsszesen: document.getElementById('osszMunkaidoOsszesen').value,
+                    osszTorvenyes: document.getElementById('osszTorvenyes').value,
+                    osszEltérés: document.getElementById('osszEltérés').value,
+                    szerkesztesMod
+                };
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch(e) {}
+        }
+
+        function betoltes() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const data = JSON.parse(raw);
+                    if (data.sorok && Array.isArray(data.sorok)) {
+                        sorok = data.sorok;
+                        if (data.aktualisEv !== undefined) aktualisEv = data.aktualisEv;
+                        if (data.aktualisHo !== undefined) aktualisHo = data.aktualisHo;
+                        if (data.szerkesztesMod !== undefined) szerkesztesMod = data.szerkesztesMod;
+
+                        if (data.nev !== undefined) document.getElementById('nevInput').value = data.nev;
+                        if (data.szervezet !== undefined) document.getElementById('szervezetInput').value = data.szervezet;
+                        if (data.osszMunkaido !== undefined) document.getElementById('osszMunkaido').value = data.osszMunkaido;
+                        if (data.osszSzabadsag !== undefined) document.getElementById('osszSzabadsag').value = data.osszSzabadsag;
+                        if (data.osszBetegseg !== undefined) document.getElementById('osszBetegseg').value = data.osszBetegseg;
+                        if (data.osszEgyeb !== undefined) document.getElementById('osszEgyeb').value = data.osszEgyeb;
+                        if (data.osszOsszesen !== undefined) document.getElementById('osszOsszesen').value = data.osszOsszesen;
+                        if (data.osszEtkezes !== undefined) document.getElementById('osszEtkezes').value = data.osszEtkezes;
+                        if (data.osszMunkaidoOsszesen !== undefined) document.getElementById('osszMunkaidoOsszesen').value = data.osszMunkaidoOsszesen;
+                        if (data.osszTorvenyes !== undefined) document.getElementById('osszTorvenyes').value = data.osszTorvenyes;
+                        if (data.osszEltérés !== undefined) document.getElementById('osszEltérés').value = data.osszEltérés;
+
+                        return true;
+                    }
+                }
+            } catch(e) {}
+            return false;
+        }
+
+        function szerkesztesModAtallit(aktiv) {
+            szerkesztesMod = aktiv;
+            const gomb = document.getElementById('editToggleBtn');
+
+            if (szerkesztesMod) {
+                gomb.textContent = 'Mentés';
+                gomb.classList.add('active');
+                setInputsEnabled(true);
+                document.querySelectorAll('.col-sor').forEach(el => {
+                    el.style.pointerEvents = 'auto';
+                    el.style.opacity = '1';
+                    el.style.cursor = 'pointer';
+                    el.classList.remove('disabled');
+                });
+            } else {
+                gomb.textContent = 'Szerkesztés';
+                gomb.classList.remove('active');
+                setInputsEnabled(false);
+                document.querySelectorAll('.col-sor').forEach(el => {
+                    el.style.pointerEvents = 'none';
+                    el.style.opacity = '0.5';
+                    el.style.cursor = 'default';
+                    el.classList.add('disabled');
+                });
+            }
+            mentes();
+        }
+
+        function setInputsEnabled(enabled) {
+            const inputs = document.querySelectorAll('input');
+            inputs.forEach(inp => {
+                if (inp.id === 'editToggleBtn') return;
+                if (inp.id === 'jelszoInput') {
+                    inp.disabled = false;
+                    return;
+                }
+                inp.disabled = !enabled;
+                if (!enabled) {
+                    inp.style.backgroundColor = 'transparent';
+                } else {
+                    inp.style.backgroundColor = '';
+                }
+            });
+        }
+
+        function jelszoModalMegnyit() {
+            const overlay = document.getElementById('passwordOverlay');
+            overlay.classList.add('active');
+            const input = document.getElementById('jelszoInput');
+            input.value = '';
+            input.disabled = false;
+            document.getElementById('errorMsg').classList.remove('show');
+            setTimeout(function() {
+                input.focus();
+                input.select();
+            }, 100);
+        }
+
+        function jelszoModalBezar() {
+            document.getElementById('passwordOverlay').classList.remove('active');
+            document.getElementById('jelszoInput').value = '';
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        function jelszoEllenorzes() {
+            const jelszo = document.getElementById('jelszoInput').value;
+            if (jelszo === JELSZO) {
+                document.getElementById('passwordOverlay').classList.remove('active');
+                document.getElementById('jelszoInput').value = '';
+                document.getElementById('errorMsg').classList.remove('show');
+                szerkesztesModAtallit(true);
+            } else {
+                document.getElementById('errorMsg').classList.add('show');
+                document.getElementById('jelszoInput').value = '';
+                document.getElementById('jelszoInput').focus();
+            }
+        }
+
+        function renderTabla() {
+            const tbody = document.getElementById('tablaTest');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const napokSzama = getNapokSzama(aktualisEv, aktualisHo);
+            if (sorok.length !== napokSzama) {
+                sorok = letrehozSorokat(aktualisEv, aktualisHo, sorok);
+                mentes();
+            }
+
+            sorok.forEach((sor, index) => {
+                const tr = document.createElement('tr');
+                tr.dataset.index = index;
+                const szin = sor.szin || 'white';
+                if (szin !== 'white') tr.classList.add(SZIN_OSZTALY[szin]);
+
+                const tdSor = document.createElement('td');
+                tdSor.className = 'col-sor';
+                if (!szerkesztesMod) tdSor.classList.add('disabled');
+                tdSor.textContent = index + 1 + '.';
+                tdSor.title = 'Kattints a szín váltásához';
+                tdSor.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (!szerkesztesMod) return;
+                    sorKattintas(index);
+                });
+                tr.appendChild(tdSor);
+
+                const tdErk = document.createElement('td');
+                tdErk.className = 'col-ido';
+                const inpErk = document.createElement('input');
+                inpErk.type = 'text';
+                inpErk.value = sor.erkezes || '';
+                inpErk.placeholder = '';
+                inpErk.dataset.field = 'erkezes';
+                inpErk.addEventListener('input', function() {
+                    if (!szerkesztesMod) return;
+                    sorok[index].erkezes = this.value;
+                    mentes();
+                });
+                tdErk.appendChild(inpErk);
+                tr.appendChild(tdErk);
+
+                const tdTav = document.createElement('td');
+                tdTav.className = 'col-ido';
+                const inpTAv = document.createElement('input');
+                inpTAv.type = 'text';
+                inpTAv.value = sor.tavozas || '';
+                inpTAv.placeholder = '';
+                inpTAv.dataset.field = 'tavozas';
+                inpTAv.addEventListener('input', function() {
+                    if (!szerkesztesMod) return;
+                    sorok[index].tavozas = this.value;
+                    mentes();
+                });
+                tdTav.appendChild(inpTAv);
+                tr.appendChild(tdTav);
+
+                const tdAl = document.createElement('td');
+                tdAl.className = 'col-alairas';
+                const inpAl = document.createElement('input');
+                inpAl.type = 'text';
+                inpAl.value = sor.alairas || '';
+                inpAl.placeholder = '';
+                inpAl.dataset.field = 'alairas';
+                inpAl.addEventListener('input', function() {
+                    if (!szerkesztesMod) return;
+                    sorok[index].alairas = this.value;
+                    mentes();
+                });
+                tdAl.appendChild(inpAl);
+                tr.appendChild(tdAl);
+
+                const tdSzab = document.createElement('td');
+                tdSzab.className = 'col-tavollet';
+                const inpSzab = document.createElement('input');
+                inpSzab.type = 'text';
+                inpSzab.value = sor.szabadsag || '';
+                inpSzab.placeholder = '';
+                inpSzab.dataset.field = 'szabadsag';
+                inpSzab.addEventListener('input', function() {
+                    if (!szerkesztesMod) return;
+                    sorok[index].szabadsag = this.value;
+                    mentes();
+                });
+                tdSzab.appendChild(inpSzab);
+                tr.appendChild(tdSzab);
+
+                const tdBet = document.createElement('td');
+                tdBet.className = 'col-tavollet';
+                const inpBet = document.createElement('input');
+                inpBet.type = 'text';
+                inpBet.value = sor.betegseg || '';
+                inpBet.placeholder = '';
+                inpBet.dataset.field = 'betegseg';
+                inpBet.addEventListener('input', function() {
+                    if (!szerkesztesMod) return;
+                    sorok[index].betegseg = this.value;
+                    mentes();
+                });
+                tdBet.appendChild(inpBet);
+                tr.appendChild(tdBet);
+
+                const tdHiv = document.createElement('td');
+                tdHiv.className = 'col-tavollet';
+                const inpHiv = document.createElement('input');
+                inpHiv.type = 'text';
+                inpHiv.value = sor.hivatalos || '';
+                inpHiv.placeholder = '';
+                inpHiv.dataset.field = 'hivatalos';
+                inpHiv.addEventListener('input', function() {
+                    if (!szerkesztesMod) return;
+                    sorok[index].hivatalos = this.value;
+                    mentes();
+                });
+                tdHiv.appendChild(inpHiv);
+                tr.appendChild(tdHiv);
+
+                const tdIga = document.createElement('td');
+                tdIga.className = 'col-tavollet';
+                const inpIga = document.createElement('input');
+                inpIga.type = 'text';
+                inpIga.value = sor.igazolatlan || '';
+                inpIga.placeholder = '';
+                inpIga.dataset.field = 'igazolatlan';
+                inpIga.addEventListener('input', function() {
+                    if (!szerkesztesMod) return;
+                    sorok[index].igazolatlan = this.value;
+                    mentes();
+                });
+                tdIga.appendChild(inpIga);
+                tr.appendChild(tdIga);
+
+                tbody.appendChild(tr);
+            });
+
+            const honapInput = document.getElementById('honapValaszto');
+            if (honapInput) {
+                const hoStr = String(aktualisHo + 1).padStart(2, '0');
+                honapInput.value = `${aktualisEv}-${hoStr}`;
+            }
+
+            if (szerkesztesMod) {
+                setInputsEnabled(true);
+                document.querySelectorAll('.col-sor').forEach(el => {
+                    el.style.pointerEvents = 'auto';
+                    el.style.opacity = '1';
+                    el.style.cursor = 'pointer';
+                    el.classList.remove('disabled');
+                });
+                document.getElementById('editToggleBtn').textContent = 'Mentés';
+                document.getElementById('editToggleBtn').classList.add('active');
+            } else {
+                setInputsEnabled(false);
+                document.querySelectorAll('.col-sor').forEach(el => {
+                    el.style.pointerEvents = 'none';
+                    el.style.opacity = '0.5';
+                    el.style.cursor = 'default';
+                    el.classList.add('disabled');
+                });
+                document.getElementById('editToggleBtn').textContent = 'Szerkesztés';
+                document.getElementById('editToggleBtn').classList.remove('active');
+            }
+
+            mentes();
+        }
+
+        function valtoztatHonap(ev, ho) {
+            aktualisEv = ev;
+            aktualisHo = ho;
+            sorok = letrehozSorokat(ev, ho, sorok);
+            renderTabla();
+        }
+
+        function sorKattintas(index) {
+            if (index < 0 || index >= sorok.length) return;
+            if (!szerkesztesMod) return;
+            const aktSzin = sorok[index].szin || 'white';
+            const ujSzin = kovetkezoSzin(aktSzin);
+            sorok[index].szin = ujSzin;
+            const tr = document.querySelector(`#tablaTest tr[data-index="${index}"]`);
+            if (tr) {
+                tr.className = '';
+                if (ujSzin !== 'white') tr.classList.add(SZIN_OSZTALY[ujSzin]);
+            }
+            mentes();
+        }
+
+        document.getElementById('nevInput').addEventListener('input', function() { if (szerkesztesMod) mentes(); });
+        document.getElementById('szervezetInput').addEventListener('input', function() { if (szerkesztesMod) mentes(); });
+        ['osszMunkaido', 'osszSzabadsag', 'osszBetegseg', 'osszEgyeb', 'osszOsszesen',
+         'osszEtkezes', 'osszMunkaidoOsszesen', 'osszTorvenyes', 'osszEltérés'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() { if (szerkesztesMod) mentes(); });
+        });
+
+        document.getElementById('honapValaszto')?.addEventListener('change', function() {
+            const [evStr, hoStr] = this.value.split('-');
+            const ev = parseInt(evStr, 10);
+            const ho = parseInt(hoStr, 10) - 1;
+            if (!isNaN(ev) && !isNaN(ho) && ho >= 0 && ho <= 11) {
+                valtoztatHonap(ev, ho);
+            }
+        });
+
+        document.getElementById('editToggleBtn').addEventListener('click', function() {
+            if (szerkesztesMod) {
+                szerkesztesModAtallit(false);
+            } else {
+                jelszoModalMegnyit();
+            }
+        });
+
+        document.getElementById('jelszoInput')?.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                jelszoEllenorzes();
+            }
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') jelszoModalBezar();
+        });
+        document.getElementById('passwordOverlay')?.addEventListener('click', function(e) {
+            if (e.target === this) jelszoModalBezar();
+        });
+
+        const betoltott = betoltes();
+        if (!betoltott || sorok.length === 0) {
+            sorok = letrehozSorokat(aktualisEv, aktualisHo, null);
+        } else {
+            const napokSzama = getNapokSzama(aktualisEv, aktualisHo);
+            if (sorok.length !== napokSzama) {
+                sorok = letrehozSorokat(aktualisEv, aktualisHo, sorok);
+            }
+        }
+        renderTabla();
+        szerkesztesModAtallit(false);
+
+        window.jelszoModalMegnyit = jelszoModalMegnyit;
+        window.jelszoModalBezar = jelszoModalBezar;
+        window.jelszoEllenorzes = jelszoEllenorzes;
+
+    })();
+</script>
+</body>
+</html>
