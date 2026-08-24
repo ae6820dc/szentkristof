@@ -1,0 +1,1181 @@
+<html lang="hu"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parkolóbeosztás</title>
+    <style>
+        /* ---- 🔧 ITT TUDOD ÁLLÍTANI A BETŰMÉRETET (1 számmal!) ---- */
+        :root {
+            --header-font-size: 20pt;  /* ← Fejléc (napok) mérete - EZT ÁLLÍTSD! */
+            --cell-font-size: var(--header-font-size);  /* ← Cellák (nevek) ugyanakkora, mint a napok */
+            --place-font-size: 16pt;   /* ← Helyszámok mérete */
+        }
+        /* ----------------------------------------------------------- */
+
+        /* ---- Alap stílusok ---- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: white;
+            font-family: Calibri, sans-serif;
+            font-size: 12pt;
+            margin: 10px;
+            padding: 10px;
+            color: #000;
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        /* ---- Táblázat fekvő nézetben - TELJES SZÉLESSÉG ---- */
+        .table-wrap {
+            width: 100%;
+            max-width: 100%;
+            overflow-x: auto;
+            padding: 5px 0;
+        }
+
+        table {
+            border-collapse: collapse;
+            table-layout: fixed;
+            width: 100%;
+            min-width: 1100px;
+            border: 0;
+        }
+
+        /* ---- FIX OSZLOPMÉRETEK (a betűmérettől FÜGGETLENÜL) ---- */
+        colgroup col:first-child { width: 10%; }
+        colgroup col:nth-child(2) { width: 8%; }
+        colgroup col:nth-child(3) { width: 14%; }
+        colgroup col:nth-child(4) { width: 14%; }
+        colgroup col:nth-child(5) { width: 14%; }
+        colgroup col:nth-child(6) { width: 14%; }
+        colgroup col:nth-child(7) { width: 14%; }
+        colgroup col:last-child { width: 6%; }
+
+        /* ---- MINDEN ADATCELLA - AUTOMATIKUS MAGASSÁG, MINIMÁLIS PADDING ---- */
+        td.del, td.du {
+            font-size: var(--cell-font-size);
+            font-weight: bold;
+            word-break: break-word;
+            white-space: normal;
+            padding: 0px 2px;           /* ← MINIMÁLIS belső margó */
+            vertical-align: middle;
+            border: 1px solid windowtext;
+            text-align: center;
+            height: auto;
+            min-height: 20px;           /* ← CSÖKKENTETT minimális magasság */
+            line-height: 1.1;            /* ← SZOROSABB sorköz */
+            overflow: visible;
+        }
+
+        /* ---- HELYSZÁMOK - AUTOMATIKUS MAGASSÁG, MINIMÁLIS PADDING ---- */
+        .fix-place {
+            font-size: var(--place-font-size);
+            font-weight: bold;
+            background: #f5f5f5;
+            cursor: default;
+            user-select: none;
+            white-space: nowrap;
+            padding: 0px 2px;
+            vertical-align: middle;
+            border: 1px solid windowtext;
+            text-align: center;
+            height: auto;
+            min-height: 20px;
+            line-height: 1.1;
+            overflow: visible;
+        }
+
+        /* ---- FEJLÉC (napok) - AUTOMATIKUS MAGASSÁG, MINIMÁLIS PADDING ---- */
+        .fix {
+            font-size: var(--header-font-size);
+            font-weight: bold;
+            background: #e8e8e8;
+            cursor: default;
+            user-select: none;
+            white-space: nowrap;
+            padding: 0px 2px;
+            vertical-align: middle;
+            border: 1px solid windowtext;
+            text-align: center;
+            height: auto;
+            min-height: 20px;
+            line-height: 1.1;
+            overflow: visible;
+        }
+
+        /* ---- NAPSZAK (délelőtt/délután) - MINIMÁLIS PADDING ---- */
+        .napszak {
+            font-size: var(--header-font-size);
+            font-weight: bold;
+            white-space: nowrap;
+            background: #f0f0f0;
+            padding: 0px 2px;
+            vertical-align: middle;
+            border: 1px solid windowtext;
+            text-align: center;
+            height: auto;
+            min-height: 20px;
+            line-height: 1.1;
+            overflow: visible;
+        }
+
+        /* ---- SZÍNEK ---- */
+        td.cell-green { background: #E2F0D9 !important; }
+        td.cell-white { background: #FFFFFF !important; }
+        td.cell-yellow { background: #FFF2CC !important; }
+
+        /* ---- BORDEREK ---- */
+        td.del { border-top: 1px solid windowtext; border-bottom: none; }
+        td.du { border-top: none; border-bottom: 1px solid windowtext; }
+
+        .x24 { 
+            background: none; 
+            border: none;
+            text-align: center;
+            vertical-align: middle;
+            padding: 0px 2px;
+            height: auto;
+            min-height: 20px;
+        }
+
+        .font2 { font-size: var(--cell-font-size); }
+        .font4 { font-size: 8pt; }
+
+        /* ---- SOROK MAGASSÁGA - MINIMÁLIS ---- */
+        tr {
+            height: auto;
+            min-height: 20px;
+        }
+
+        /* ---- GOMBOK / TOOLBAR ---- */
+        .toolbar {
+            margin-top: 15px;
+            padding: 12px 0;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+        .toolbar button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: bold;
+            color: white;
+            transition: 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .btn-save { background: #4CAF50; }
+        .btn-save:hover { background: #45a049; transform: scale(1.02); }
+        
+        .btn-edit { background: #2196F3; }
+        .btn-edit.active { background: #ff9800; }
+        .btn-edit:hover { opacity: 0.85; transform: scale(1.02); }
+
+        .btn-add { 
+            background: #9C27B0; 
+            display: none; 
+        }
+        .btn-add:hover { background: #7B1FA2; transform: scale(1.02); }
+
+        .btn-insert {
+            background: #FF9800;
+            display: none;
+            font-size: 13px;
+            padding: 8px 16px;
+        }
+        .btn-insert:hover { background: #F57C00; transform: scale(1.02); }
+
+        body.edit-mode .btn-add { display: inline-block; }
+        body.edit-mode .btn-insert { display: inline-block; }
+        body.edit-mode .btn-delete { display: inline-block; }
+
+        body.edit-mode td.fix-place {
+            background: #f0f8ff !important;
+            cursor: text;
+            user-select: text;
+            outline: 2px dashed #2196F3;
+        }
+
+        .status-msg {
+            font-size: 15px;
+            color: #d32f2f;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        /* ---- TÖRLÉS GOMB ---- */
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 26px;
+            height: 26px;
+            font-size: 13px;
+            line-height: 1;
+            cursor: pointer;
+            display: none;
+            padding: 0;
+            margin: 0 auto;
+            transition: 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .btn-delete:hover { background: #c0392b; transform: scale(1.15); }
+
+        /* ---- BESZÚRÁS GOMB A SOROK MELLETT ---- */
+        .btn-insert-row {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            padding: 2px 6px;
+            cursor: pointer;
+            display: none;
+            margin: 0 auto;
+            transition: 0.2s;
+        }
+        .btn-insert-row:hover { background: #388E3C; transform: scale(1.05); }
+        body.edit-mode .btn-insert-row { display: inline-block; }
+
+        /* ---- NYOMTATÁS ---- */
+        @media print {
+            .toolbar, .btn-delete, .btn-insert-row, #statusMsg {
+                display: none !important;
+            }
+            body { margin: 0; padding: 5px; }
+            table { min-width: 100%; }
+            .fix-place { background: #f5f5f5 !important; }
+            .fix { background: #e8e8e8 !important; }
+            .napszak { background: #f0f0f0 !important; }
+        }
+
+        /* ---- KIS KÉPERNYŐKRE (RESPONSIVE) ---- */
+        @media screen and (max-width: 1200px) {
+            table { min-width: 950px; }
+            :root {
+                --header-font-size: 18pt;
+                --cell-font-size: var(--header-font-size);
+                --place-font-size: 14pt;
+            }
+            td.del, td.du { padding: 0px 2px; min-height: 18px; }
+            .fix-place { min-height: 18px; }
+            .fix { min-height: 18px; }
+            .napszak { min-height: 18px; }
+            .x24 { min-height: 18px; }
+            tr { min-height: 18px; }
+            .toolbar button { padding: 8px 16px; font-size: 13px; }
+        }
+
+        @media screen and (max-width: 800px) {
+            table { min-width: 750px; }
+            :root {
+                --header-font-size: 14pt;
+                --cell-font-size: var(--header-font-size);
+                --place-font-size: 11pt;
+            }
+            td.del, td.du { padding: 0px 1px; min-height: 16px; }
+            .fix-place { min-height: 16px; }
+            .fix { min-height: 16px; }
+            .napszak { min-height: 16px; }
+            .x24 { min-height: 16px; }
+            tr { min-height: 16px; }
+            .toolbar button { padding: 6px 12px; font-size: 11px; }
+        }
+    </style>
+</head>
+<body class="">
+
+<div class="table-wrap">
+
+    <table id="scheduleTable">
+        <colgroup>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+            <col>
+        </colgroup>
+
+        <!-- FEJLÉC -->
+        <tbody><tr>
+            <td class="fix"></td>
+            <td class="fix"></td>
+            <td class="fix">HÉTFŐ</td>
+            <td class="fix">KEDD</td>
+            <td class="fix">SZERDA</td>
+            <td class="fix">CSÜTÖRTÖK</td>
+            <td class="fix">PÉNTEK</td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 1. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">1. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(1)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(1)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 2. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">2. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(2)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(2)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 3. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">3. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(3)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(3)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 4. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">4. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(4)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(4)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 5. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">5. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(5)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(5)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 6. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">6. hely&nbsp;(MK)</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(6)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(6)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 7. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">7. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(7)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(7)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 8. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">8. hely&nbsp;(V)</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(8)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(8)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 9. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">9. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(9)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(9)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 10. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">10. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(10)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(10)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 11. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">11. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(11)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(11)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 12. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">12. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(12)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(12)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 13. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">13. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(13)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(13)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 14. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">14. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(14)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(14)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 15. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">15. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(15)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(15)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 16. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">16. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(16)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(16)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 17. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">17. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(17)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(17)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 18. hely (Gyógyszertár) -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">Gy</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(18)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(18)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 19. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">18. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(19)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(19)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 20. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">19. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(20)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(20)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 21. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">20. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(21)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(21)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"><br></td>
+            <td class="x24"></td>
+        </tr>
+
+        <!-- 22. hely -->
+        <tr>
+            <td rowspan="2" class="fix-place" style="border-bottom:1px solid windowtext;">21. hely</td>
+            <td class="napszak">délelőtt</td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"></td>
+            <td class="del cell-green"><br></td>
+            <td class="del cell-green"><br></td>
+            <td class="x24">
+                <button class="btn-delete" onclick="deletePlace(22)">🗑️</button>
+                <button class="btn-insert-row" onclick="insertPlaceAfter(22)">➕</button>
+            </td>
+        </tr>
+        <tr>
+            <td class="napszak">délután</td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"><br></td>
+            <td class="du cell-green"></td>
+            <td class="du cell-green"></td>
+            <td class="x24"></td>
+        </tr>
+
+    </tbody></table>
+    
+    <!-- GOMBOK -->
+    <div class="toolbar">
+        <button class="btn-save" onclick="savePage()">💾 Mentés HTML-ként</button>
+        <button id="editBtn" class="btn-edit" onclick="toggleEdit()">🔒 Szerkesztés</button>
+        <button class="btn-add" onclick="addNewPlace()">➕ Új hely hozzáadása</button>
+        <span id="statusMsg" class="status-msg" style="color: rgb(76, 175, 80);"></span>
+    </div>
+
+</div>
+
+<script>
+    // --- 1. SÁRGA LISTA ---
+    const yellowNames = [
+        "Főigazgató",
+        "Gazdasági igazgató",
+        "Céges autó",
+        "Orvosigazgató"
+    ];
+
+    // --- 2. MENTÉS ---
+    function savePage() {
+        if(document.body.classList.contains('edit-mode')) {
+            toggleEdit(); 
+        }
+        let htmlContent = document.documentElement.outerHTML;
+        const blob = new Blob([htmlContent], { type: 'text/html' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'Parkolóbeosztás.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // --- 3. SZERKESZTÉS BE/KI ---
+    function toggleEdit() {
+        const body = document.body;
+        const btn = document.getElementById('editBtn');
+        const msg = document.getElementById('statusMsg');
+        const editableCells = document.querySelectorAll('td.del, td.du');
+        const placeCells = document.querySelectorAll('td.fix-place');
+
+        if (body.classList.contains('edit-mode')) {
+            body.classList.remove('edit-mode');
+            btn.innerHTML = '🔒 Szerkesztés';
+            btn.classList.remove('active');
+            msg.innerText = '';
+            editableCells.forEach(cell => {
+                cell.removeAttribute('contenteditable');
+            });
+            placeCells.forEach(cell => {
+                cell.removeAttribute('contenteditable');
+            });
+        } else {
+            const password = prompt('Kérlek add meg a jelszót a szerkesztéshez:');
+            if (password === '1111') {
+                body.classList.add('edit-mode');
+                btn.innerHTML = '✏️ Szerkesztés (Aktív)';
+                btn.classList.add('active');
+                msg.innerText = '✅ Szerkesztési mód aktív';
+                msg.style.color = '#4CAF50';
+                
+                editableCells.forEach(cell => {
+                    cell.setAttribute('contenteditable', 'true');
+                });
+                placeCells.forEach(cell => {
+                    cell.setAttribute('contenteditable', 'true');
+                });
+                
+                document.querySelector('.table-wrap').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+                
+            } else {
+                msg.innerText = '❌ Hibás jelszó!';
+                msg.style.color = '#d32f2f';
+                setTimeout(() => { msg.innerText = ''; }, 3000);
+            }
+        }
+    }
+
+    // --- 4. INTELLIGENS SZÍNKEZELŐ ---
+    document.addEventListener('DOMContentLoaded', function() {
+        refreshAllColors();
+        
+        const editableCells = document.querySelectorAll('td.del, td.du');
+        editableCells.forEach(cell => {
+            cell.addEventListener('blur', function() {
+                updateCellColor(this);
+            });
+        });
+    });
+
+    function refreshAllColors() {
+        const editableCells = document.querySelectorAll('td.del, td.du');
+        editableCells.forEach(cell => {
+            updateCellColor(cell);
+        });
+    }
+
+    function updateCellColor(cell) {
+        cell.classList.remove('cell-green', 'cell-white', 'cell-yellow');
+        
+        let text = cell.innerText.trim(); 
+        if (text === "") {
+            cell.classList.add('cell-green');
+        } else if (yellowNames.includes(text)) {
+            cell.classList.add('cell-yellow');
+        } else {
+            cell.classList.add('cell-white');
+        }
+    }
+
+    // --- 5. ÚJ PARKOLÓHELY HOZZÁADÁSA (a végére) ---
+    function addNewPlace() {
+        const table = document.getElementById('scheduleTable');
+        
+        const currentRows = table.rows.length;
+        const placeCount = (currentRows - 1) / 2; 
+        const newNumber = placeCount + 1;
+
+        const rowDel = table.insertRow(-1);
+        
+        const tdPlace = rowDel.insertCell(0);
+        tdPlace.rowSpan = 2;
+        tdPlace.className = "fix-place";
+        tdPlace.style.borderBottom = "1px solid windowtext";
+        tdPlace.innerText = newNumber + ". hely";
+        if (document.body.classList.contains('edit-mode')) {
+            tdPlace.setAttribute('contenteditable', 'true');
+        }
+
+        const tdTimeDel = rowDel.insertCell(1);
+        tdTimeDel.className = "napszak";
+        tdTimeDel.innerText = "délelőtt";
+
+        for (let i = 0; i < 5; i++) {
+            const cell = rowDel.insertCell(2);
+            cell.className = "del cell-green";
+            cell.setAttribute('contenteditable', 'false');
+            
+            if (document.body.classList.contains('edit-mode')) {
+                cell.setAttribute('contenteditable', 'true');
+            }
+            cell.addEventListener('blur', function() { updateCellColor(this); });
+        }
+        
+        const tdDelBtn = rowDel.insertCell(7);
+        tdDelBtn.className = "x24";
+        tdDelBtn.innerHTML = `
+            <button class="btn-delete" onclick="deletePlace(${newNumber})">🗑️</button>
+            <button class="btn-insert-row" onclick="insertPlaceAfter(${newNumber})">➕</button>
+        `;
+
+        const rowDu = table.insertRow(-1);
+
+        const tdTimeDu = rowDu.insertCell(0);
+        tdTimeDu.className = "napszak";
+        tdTimeDu.innerText = "délután";
+
+        for (let i = 0; i < 5; i++) {
+            const cell = rowDu.insertCell(1);
+            cell.className = "du cell-green";
+            cell.setAttribute('contenteditable', 'false');
+            
+            if (document.body.classList.contains('edit-mode')) {
+                cell.setAttribute('contenteditable', 'true');
+            }
+            cell.addEventListener('blur', function() { updateCellColor(this); });
+        }
+        
+        const tdDuBtn = rowDu.insertCell(6);
+        tdDuBtn.className = "x24";
+    }
+
+    // --- 6. SOR BESZÚRÁSA EGY MEGADOTT HELY UTÁN ---
+    function insertPlaceAfter(placeNumber) {
+        if (!document.body.classList.contains('edit-mode')) {
+            alert("A beszúráshoz előbb kapcsold be a szerkesztési módot (1111)!");
+            return;
+        }
+
+        const table = document.getElementById('scheduleTable');
+        let rowIndex = -1;
+        
+        for (let i = 1; i < table.rows.length; i++) {
+            const row = table.rows[i];
+            const firstCell = row.cells[0];
+            if (firstCell && firstCell.innerText.trim() === placeNumber + ". hely") {
+                rowIndex = i;
+                break;
+            }
+        }
+        
+        if (rowIndex === -1) {
+            alert("Nem található a hely!");
+            return;
+        }
+
+        const newNumber = placeNumber + 1;
+
+        const rowDel = table.insertRow(rowIndex + 2);
+        
+        const tdPlace = rowDel.insertCell(0);
+        tdPlace.rowSpan = 2;
+        tdPlace.className = "fix-place";
+        tdPlace.style.borderBottom = "1px solid windowtext";
+        tdPlace.innerText = newNumber + ". hely";
+        if (document.body.classList.contains('edit-mode')) {
+            tdPlace.setAttribute('contenteditable', 'true');
+        }
+
+        const tdTimeDel = rowDel.insertCell(1);
+        tdTimeDel.className = "napszak";
+        tdTimeDel.innerText = "délelőtt";
+
+        for (let i = 0; i < 5; i++) {
+            const cell = rowDel.insertCell(2);
+            cell.className = "del cell-green";
+            cell.setAttribute('contenteditable', 'false');
+            
+            if (document.body.classList.contains('edit-mode')) {
+                cell.setAttribute('contenteditable', 'true');
+            }
+            cell.addEventListener('blur', function() { updateCellColor(this); });
+        }
+        
+        const tdDelBtn = rowDel.insertCell(7);
+        tdDelBtn.className = "x24";
+        tdDelBtn.innerHTML = `
+            <button class="btn-delete" onclick="deletePlace(${newNumber})">🗑️</button>
+            <button class="btn-insert-row" onclick="insertPlaceAfter(${newNumber})">➕</button>
+        `;
+
+        const rowDu = table.insertRow(rowIndex + 3);
+
+        const tdTimeDu = rowDu.insertCell(0);
+        tdTimeDu.className = "napszak";
+        tdTimeDu.innerText = "délután";
+
+        for (let i = 0; i < 5; i++) {
+            const cell = rowDu.insertCell(1);
+            cell.className = "du cell-green";
+            cell.setAttribute('contenteditable', 'false');
+            
+            if (document.body.classList.contains('edit-mode')) {
+                cell.setAttribute('contenteditable', 'true');
+            }
+            cell.addEventListener('blur', function() { updateCellColor(this); });
+        }
+        
+        const tdDuBtn = rowDu.insertCell(6);
+        tdDuBtn.className = "x24";
+
+        renumberPlaces();
+    }
+
+    // --- 7. PARKOLÓHELY TÖRLÉSE ---
+    function deletePlace(placeNumber) {
+        if (!document.body.classList.contains('edit-mode')) {
+            alert("A törléshez előbb kapcsold be a szerkesztési módot (1111)!");
+            return;
+        }
+
+        if (!confirm(`Biztosan törlöd a ${placeNumber}. helyet? (Ez a művelet végleges!)`)) {
+            return;
+        }
+
+        const table = document.getElementById('scheduleTable');
+        
+        for (let i = 1; i < table.rows.length; i++) {
+            const row = table.rows[i];
+            const firstCell = row.cells[0];
+            if (firstCell && firstCell.innerText.trim() === placeNumber + ". hely") {
+                table.deleteRow(i);
+                table.deleteRow(i);
+                renumberPlaces();
+                return;
+            }
+        }
+        alert("Hiba: Nem találtam a helyet!");
+    }
+
+    // --- 8. ÚJRASZÁMOZÁS ---
+    function renumberPlaces() {
+        const table = document.getElementById('scheduleTable');
+        let counter = 1;
+        
+        for (let i = 1; i < table.rows.length; i++) {
+            const row = table.rows[i];
+            if (row.cells.length > 0) {
+                const firstCell = row.cells[0];
+                if (firstCell.classList.contains('fix-place')) {
+                    const currentText = firstCell.innerText.trim();
+                    if (/^\d+\.\s*hely/.test(currentText) || /^\d+\.\s*hely\s*\(/.test(currentText)) {
+                        const match = currentText.match(/^(?:\d+\.\s*hely)(.*)$/);
+                        if (match) {
+                            firstCell.innerText = counter + ". hely" + (match[1] || "");
+                        } else {
+                            firstCell.innerText = counter + ". hely";
+                        }
+                    }
+                    
+                    const btnCell = row.cells[7];
+                    if(btnCell) {
+                        const deleteBtn = btnCell.querySelector('.btn-delete');
+                        if(deleteBtn) {
+                            deleteBtn.setAttribute('onclick', `deletePlace(${counter})`);
+                        }
+                        const insertBtn = btnCell.querySelector('.btn-insert-row');
+                        if(insertBtn) {
+                            insertBtn.setAttribute('onclick', `insertPlaceAfter(${counter})`);
+                        }
+                    }
+                    counter++;
+                }
+            }
+        }
+    }
+</script>
+
+</body></html>
