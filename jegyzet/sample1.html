@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jegyzet</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231a3c5e'/%3E%3Cpath d='M18 16h22a4 4 0 0 1 4 4v24a4 4 0 0 1-4 4H18a4 4 0 0 1-4-4V20a4 4 0 0 1 4-4z' fill='%23ffffff'/%3E%3Cpath d='M20 24h20M20 32h20M20 40h12' stroke='%231a3c5e' stroke-width='3.5' stroke-linecap='round'/%3E%3Cpath d='M40 14l6 6-6 6' fill='none' stroke='%23c44536' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            padding: 30px 20px;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            padding: 30px 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .ceg-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #1a3c5e;
+            padding-bottom: 15px;
+        }
+        .ceg-header .cegnev {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a3c5e;
+            letter-spacing: 2px;
+        }
+        .ceg-header .cegnev span {
+            font-weight: 300;
+            color: #4a7a9e;
+        }
+        .ceg-header .cegaddress {
+            font-size: 14px;
+            color: #555;
+            margin-top: 2px;
+        }
+        .ceg-header .cim {
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a3c5e;
+            margin-top: 10px;
+        }
+        .ceg-header .idoszak {
+            font-size: 14px;
+            color: #555;
+            margin-top: 4px;
+        }
+        .ceg-header .idoszak input {
+            border: none;
+            border-bottom: 1.5px dashed #7a9bcb;
+            background: transparent;
+            padding: 2px 8px;
+            font-size: 14px;
+            min-width: 150px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .ceg-header .idoszak input:focus {
+            outline: none;
+            border-bottom: 2px solid #1a3c5e;
+        }
+
+        .szemely-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 40px;
+            background: #f8faff;
+            padding: 12px 18px;
+            border-radius: 8px;
+            border: 1px solid #d0dbe8;
+            margin-bottom: 18px;
+        }
+        .szemely-info label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #1a3c5e;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .szemely-info input {
+            border: none;
+            border-bottom: 1.5px dashed #7a9bcb;
+            background: transparent;
+            padding: 4px 6px;
+            font-size: 14px;
+            min-width: 160px;
+            transition: 0.2s;
+            color: #1a3c5e;
+            font-weight: 500;
+        }
+        .szemely-info input:focus {
+            outline: none;
+            border-bottom: 2px solid #1a3c5e;
+            background: #fff;
+        }
+        .szemely-info input:disabled {
+            opacity: 0.7;
+            background: #f5f7fa;
+            border-bottom: 1px solid #ccc;
+            color: #555;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 6px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 500px;
+        }
+        th {
+            background: #1a3c5e;
+            color: white;
+            padding: 8px 5px;
+            text-align: center;
+            font-weight: 600;
+            white-space: nowrap;
+            font-size: 12px;
+        }
+        td {
+            border: 1px solid #bcc9db;
+            padding: 6px 3px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        td textarea {
+            width: 100%;
+            border: none;
+            background: transparent;
+            padding: 6px 4px;
+            text-align: left;
+            font-size: 13px;
+            font-family: inherit;
+            border-radius: 3px;
+            color: #1a3c5e;
+            font-weight: 500;
+            resize: vertical;
+            min-height: 0;
+            line-height: 1.4;
+            overflow-y: hidden;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            box-sizing: border-box;
+            vertical-align: middle;
+            display: block;
+        }
+        td textarea:focus {
+            outline: 2px solid #1a3c5e;
+            outline-offset: -1px;
+            background: #fffbe6;
+        }
+        td textarea:disabled {
+            opacity: 0.9;
+            background: transparent;
+            cursor: not-allowed;
+            color: #1a3c5e;
+            -webkit-text-fill-color: #1a3c5e;
+        }
+
+        /* ========== NAP OSZLOP ========== */
+        .col-sor {
+            min-width: 55px;
+            width: 55px;
+            font-weight: 600;
+            cursor: pointer;
+            user-select: none;
+            font-size: 12px;
+            color: #1a3c5e;
+            vertical-align: middle;
+            padding: 4px 2px;
+        }
+        .col-sor.disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .col-sor .nap-szam {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .col-sor .nap-nev {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+
+        .col-sor .nap-nev,
+        .col-sor .nap-szam {
+            color: inherit;
+        }
+
+        .row-white .col-sor .nap-nev,
+        .row-white .col-sor .nap-szam {
+            color: #6a8aaa;
+        }
+
+        .row-white .col-sor.hetvege .nap-nev,
+        .row-white .col-sor.hetvege .nap-szam {
+            color: #c44536;
+        }
+
+        .row-green .col-sor .nap-nev,
+        .row-green .col-sor .nap-szam {
+            color: #155724;
+        }
+
+        .row-red .col-sor .nap-nev,
+        .row-red .col-sor .nap-szam {
+            color: #721c24;
+        }
+
+        .row-yellow .col-sor .nap-nev,
+        .row-yellow .col-sor .nap-szam {
+            color: #856404;
+        }
+
+        .row-white .col-sor.hetvege-sat .nap-nev,
+        .row-white .col-sor.hetvege-sat .nap-szam {
+            color: #555;
+        }
+
+        .row-white .col-sor.hetvege-sun .nap-nev,
+        .row-white .col-sor.hetvege-sun .nap-szam {
+            color: #c44536;
+        }
+
+        .row-white td { background: white; }
+        .row-green td { background: #d4edda; }
+        .row-red td { background: #f8d7da; }
+        .row-yellow td { background: #fff3cd; }
+
+        .row-weekend-sat td { background: #e8e8e8; }
+        .row-weekend-sun td { background: #d0d0d0; }
+
+        .row-green td textarea { color: #155724; }
+        .row-red td textarea { color: #721c24; }
+        .row-yellow td textarea { color: #856404; }
+        .row-weekend-sat td textarea { color: #555; }
+        .row-weekend-sun td textarea { color: #444; }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            margin: 24px 0 10px;
+        }
+        .actions button {
+            padding: 10px 28px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            background: #1a3c5e;
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+        .actions button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 14px rgba(26,60,94,0.3);
+        }
+        .actions button.export { background: #2a6d4a; }
+        .actions button.export:hover { background: #1d5236; }
+        .actions button.import { background: #b8860b; }
+        .actions button.import:hover { background: #8b6508; }
+        .actions button.edit-mode { background: #3a6b8a; }
+        .actions button.edit-mode.active { background: #c44536; }
+        .actions button.edit-mode.active:hover { background: #a33528; }
+        .actions button.edit-mode:before { content: "✏️ "; }
+        .actions button.edit-mode.active:before { content: "💾 "; }
+
+        .footer-note {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            margin-top: 18px;
+            border-top: 1px solid #dde3ed;
+            padding-top: 14px;
+        }
+
+        .password-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 9999;
+            justify-content: center; align-items: center;
+        }
+        .password-overlay.active { display: flex; }
+        .password-modal {
+            background: white;
+            padding: 35px 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 380px;
+            width: 90%;
+        }
+        .password-modal h2 { font-size: 20px; color: #1a3c5e; margin-bottom: 8px; }
+        .password-modal p { color: #666; font-size: 14px; margin-bottom: 18px; }
+        .password-modal input {
+            width: 100%;
+            padding: 10px 14px;
+            font-size: 18px;
+            text-align: center;
+            border: 2px solid #d0dbe8;
+            border-radius: 6px;
+            outline: none;
+            transition: 0.2s;
+            letter-spacing: 4px;
+            background: white;
+            color: #1a3c5e;
+        }
+        .password-modal input:focus {
+            border-color: #1a3c5e;
+            box-shadow: 0 0 0 3px rgba(26, 60, 94, 0.2);
+        }
+        .password-modal .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+            justify-content: center;
+        }
+        .password-modal .modal-buttons button {
+            padding: 8px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .password-modal .modal-buttons .confirm { background: #c44536; color: white; }
+        .password-modal .modal-buttons .confirm:hover { background: #a33528; }
+        .password-modal .modal-buttons .cancel { background: #ccc; color: #333; }
+        .password-modal .modal-buttons .cancel:hover { background: #bbb; }
+        .password-modal .error-msg {
+            color: #d32f2f;
+            font-size: 13px;
+            margin-top: 10px;
+            display: none;
+        }
+        .password-modal .error-msg.show { display: block; }
+
+        #fileInput { display: none; }
+
+        @media print {
+            body { background: white; padding: 8px; margin: 0; }
+            .container { box-shadow: none; padding: 10px 12px; border-radius: 0; }
+            .actions { display: none !important; }
+            .footer-note { display: none; }
+            .password-overlay { display: none !important; }
+            .szemely-info input { border-bottom: 1px solid #999; }
+            td textarea {
+                border: none;
+                padding: 3px 2px;
+                font-size: 11px;
+                background: transparent !important;
+                color: #000 !important;
+                resize: none;
+                min-height: auto;
+                height: auto;
+                overflow: visible;
+            }
+            td textarea:focus { outline: none; background: transparent !important; }
+            th { background: #1a3c5e !important; color: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .col-sor { background: #f4f7fb !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .row-green td { background: #d4edda !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .row-red td { background: #f8d7da !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .row-yellow td { background: #fff3cd !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .row-weekend-sat td { background: #e8e8e8 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .row-weekend-sun td { background: #d0d0d0 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .row-white td { background: white !important; }
+            .szemely-info { background: #f8faff !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .ceg-header { border-bottom-color: #1a3c5e !important; }
+            table { font-size: 11px; }
+            td, th { padding: 2px 3px; }
+            .col-sor .nap-nev,
+            .col-sor .nap-szam {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="ceg-header">
+        <div class="cegnev">SZENT KRISTÓF <span>SZAKRENDELŐ</span></div>
+        <div class="cegaddress">BUDAPEST • ÚJBUDA</div>
+        <div class="cim">Jegyzet</div>
+        <div class="idoszak">
+            Időszak: <input type="month" id="honapValaszto">
+        </div>
+    </div>
+
+    <div class="szemely-info">
+        <label>Név: <input type="text" id="nevInput" placeholder="teljes név"></label>
+        <label>Szervezeti egység: <input type="text" id="szervezetInput" placeholder="pl. fogászat"></label>
+    </div>
+
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-sor">Nap</th>
+                    <th>Jegyzet</th>
+                </tr>
+            </thead>
+            <tbody id="tablaTest"></tbody>
+        </table>
+    </div>
+
+    <div class="actions">
+        <button class="edit-mode" id="editToggleBtn">Szerkesztés</button>
+        <button class="export" id="exportBtn">📤 Export</button>
+        <button class="import" id="importBtn">📥 Import</button>
+        <input type="file" id="fileInput" accept=".json">
+    </div>
+
+    <div class="footer-note">
+        ⚡ Kattints a napszámra a szín váltásához · IndexedDB automatikus mentés
+    </div>
+</div>
+
+<div class="password-overlay" id="passwordOverlay">
+    <div class="password-modal">
+        <h2>🔒 Jelszó szükséges</h2>
+        <p id="passwordModalText">Add meg a jelszót (1111)</p>
+        <input type="password" id="jelszoInput" placeholder="●●●●" maxlength="10">
+        <div class="error-msg" id="errorMsg">❌ Hibás jelszó!</div>
+        <div class="modal-buttons">
+            <button class="cancel" id="jelszoCancelBtn">Mégse</button>
+            <button class="confirm" id="jelszoConfirmBtn">OK</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+//  JEGYZET – IndexedDB verzió (ugyanaz a kinézet és funkciók)
+//  Adatbázis: jegyzetDB
+//  Tároló: honapok (kulcs: "2026-09")
+// ============================================================
+
+const JELSZO = '1111';
+const DB_NAME = 'jegyzetDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'honapok';
+
+let db = null;
+let ev = new Date().getFullYear();
+let ho = new Date().getMonth();
+let sorok = [];
+let szerkesztes = false;
+let jelszoCallback = null;
+
+// ---------- INDEXEDDB ----------
+function dbMegnyitas() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onerror = () => reject(request.error);
+        request.onsuccess = () => {
+            db = request.result;
+            resolve(db);
+        };
+        request.onupgradeneeded = (event) => {
+            const database = event.target.result;
+            if (!database.objectStoreNames.contains(STORE_NAME)) {
+                database.createObjectStore(STORE_NAME, { keyPath: 'kulcs' });
+            }
+        };
+    });
+}
+
+function dbMent(adat) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.put(adat);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function dbBetolt(kulcs) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.get(kulcs);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function dbOsszesAdat() {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// ---------- SEGÉD ----------
+function honapKulcs(ev, ho) {
+    return `${ev}-${String(ho + 1).padStart(2, '0')}`;
+}
+
+function getNapok() {
+    return new Date(ev, ho + 1, 0).getDate();
+}
+
+function ujSorok() {
+    const s = [];
+    for (let i = 0; i < getNapok(); i++) {
+        s.push({ jegyzet: '', szin: 'white' });
+    }
+    return s;
+}
+
+function getHetNapja(napIndex) {
+    return new Date(ev, ho, napIndex + 1).getDay();
+}
+
+const NAP_NEV = ['V', 'H', 'K', 'Sze', 'Cs', 'P', 'Szo'];
+
+function getHetvegiOsztaly(napIndex) {
+    const nap = getHetNapja(napIndex);
+    if (nap === 6) return 'row-weekend-sat';
+    if (nap === 0) return 'row-weekend-sun';
+    return null;
+}
+
+const SZIN_OSZTALY = { 'white': 'row-white', 'green': 'row-green', 'red': 'row-red', 'yellow': 'row-yellow' };
+const SZIN_CKLUS = ['white', 'green', 'red', 'yellow'];
+
+function getSorOsztaly(sor, napIndex) {
+    if (sor.szin && sor.szin !== 'white') {
+        return SZIN_OSZTALY[sor.szin] || '';
+    }
+    const hetvegi = getHetvegiOsztaly(napIndex);
+    if (hetvegi) return hetvegi;
+    return 'row-white';
+}
+
+function kovetkezoSzin(akt) {
+    const i = SZIN_CKLUS.indexOf(akt);
+    return i === -1 || i === SZIN_CKLUS.length - 1 ? SZIN_CKLUS[0] : SZIN_CKLUS[i + 1];
+}
+
+function autoMeretez(textarea) {
+    textarea.style.height = 'auto';
+    const ujMagassag = Math.max(textarea.scrollHeight, 24);
+    textarea.style.height = ujMagassag + 'px';
+}
+
+// ---------- MENTÉS / BETÖLTÉS ----------
+async function mentes() {
+    try {
+        const adat = {
+            kulcs: honapKulcs(ev, ho),
+            nev: document.getElementById('nevInput').value,
+            szervezet: document.getElementById('szervezetInput').value,
+            sorok: sorok
+        };
+        await dbMent(adat);
+    } catch(e) {
+        console.error('Mentési hiba:', e);
+    }
+}
+
+async function betoltes() {
+    try {
+        const havi = await dbBetolt(honapKulcs(ev, ho));
+        if (havi) {
+            document.getElementById('nevInput').value = havi.nev || '';
+            document.getElementById('szervezetInput').value = havi.szervezet || '';
+            if (havi.sorok && Array.isArray(havi.sorok)) {
+                sorok = havi.sorok;
+                return true;
+            }
+        } else {
+            // Ha nincs még ilyen hónap, próbáljuk a legutolsó mentett nevet/szervezetet
+            const osszes = await dbOsszesAdat();
+            if (osszes.length > 0) {
+                osszes.sort((a, b) => (a.kulcs < b.kulcs ? 1 : -1));
+                document.getElementById('nevInput').value = osszes[0].nev || '';
+                document.getElementById('szervezetInput').value = osszes[0].szervezet || '';
+            }
+        }
+    } catch(e) {
+        console.error('Betöltési hiba:', e);
+    }
+    return false;
+}
+
+// ---------- RENDER ----------
+function render() {
+    const tbody = document.getElementById('tablaTest');
+    tbody.innerHTML = '';
+
+    const napok = getNapok();
+    if (sorok.length !== napok) {
+        sorok = ujSorok();
+    }
+
+    sorok.forEach((sor, i) => {
+        const tr = document.createElement('tr');
+        tr.className = getSorOsztaly(sor, i);
+
+        const td1 = document.createElement('td');
+        const napIndex = getHetNapja(i);
+        const hetvege = (napIndex === 0 || napIndex === 6);
+        
+        td1.className = 'col-sor' + (szerkesztes ? '' : ' disabled') + (hetvege ? ' hetvege' : '');
+        
+        td1.innerHTML = `<span class="nap-szam">${i + 1}.</span><span class="nap-nev">${NAP_NEV[napIndex]}</span>`;
+        td1.title = `Kattints a szín váltásához (${NAP_NEV[napIndex]})`;
+        
+        td1.onclick = function() {
+            if (!szerkesztes) return;
+            const uj = kovetkezoSzin(sor.szin || 'white');
+            sor.szin = uj;
+            tr.className = getSorOsztaly(sor, i);
+            mentes();
+        };
+        tr.appendChild(td1);
+
+        const td2 = document.createElement('td');
+        td2.style.padding = '2px';
+        const ta = document.createElement('textarea');
+        ta.value = sor.jegyzet || '';
+        ta.disabled = !szerkesztes;
+        ta.rows = 1;
+        
+        ta.oninput = function() {
+            if (szerkesztes) {
+                sor.jegyzet = this.value;
+                autoMeretez(this);
+                mentes();
+            }
+        };
+        
+        setTimeout(() => autoMeretez(ta), 0);
+        
+        td2.appendChild(ta);
+        tr.appendChild(td2);
+
+        tbody.appendChild(tr);
+    });
+
+    document.getElementById('honapValaszto').value = honapKulcs(ev, ho);
+
+    const gomb = document.getElementById('editToggleBtn');
+    if (szerkesztes) {
+        gomb.textContent = 'Mentés és bezárás';
+        gomb.classList.add('active');
+    } else {
+        gomb.textContent = 'Szerkesztés';
+        gomb.classList.remove('active');
+    }
+
+    document.querySelectorAll('.szemely-info input')
+        .forEach(inp => {
+            if (inp.id === 'honapValaszto') return;
+            inp.disabled = !szerkesztes;
+        });
+
+    document.querySelectorAll('.col-sor').forEach(el => {
+        if (szerkesztes) {
+            el.classList.remove('disabled');
+            el.style.pointerEvents = 'auto';
+            el.style.opacity = '1';
+        } else {
+            el.classList.add('disabled');
+            el.style.pointerEvents = 'none';
+            el.style.opacity = '0.5';
+        }
+    });
+
+    window.addEventListener('resize', function() {
+        document.querySelectorAll('td textarea').forEach(autoMeretez);
+    });
+}
+
+// ---------- HÓNAP VÁLTÁS ----------
+async function honapValtas(ujEv, ujHo) {
+    if (szerkesztes) await mentes();
+    ev = ujEv;
+    ho = ujHo;
+    sorok = ujSorok();
+    await betoltes();
+    render();
+}
+
+// ---------- JELSZÓ ----------
+function jelszoModal(callback, szoveg) {
+    document.getElementById('passwordOverlay').classList.add('active');
+    document.getElementById('passwordModalText').textContent = szoveg || 'Add meg a jelszót (1111)';
+    document.getElementById('jelszoInput').value = '';
+    document.getElementById('errorMsg').classList.remove('show');
+    jelszoCallback = callback || null;
+    setTimeout(() => document.getElementById('jelszoInput').focus(), 100);
+}
+
+function jelszoBezar() {
+    document.getElementById('passwordOverlay').classList.remove('active');
+    document.getElementById('jelszoInput').value = '';
+    document.getElementById('errorMsg').classList.remove('show');
+    jelszoCallback = null;
+}
+
+function jelszoEllenorzes() {
+    if (document.getElementById('jelszoInput').value === JELSZO) {
+        document.getElementById('passwordOverlay').classList.remove('active');
+        document.getElementById('jelszoInput').value = '';
+        document.getElementById('errorMsg').classList.remove('show');
+        const cb = jelszoCallback;
+        jelszoCallback = null;
+        if (cb) cb();
+    } else {
+        document.getElementById('errorMsg').classList.add('show');
+        document.getElementById('jelszoInput').value = '';
+        document.getElementById('jelszoInput').focus();
+    }
+}
+
+// ---------- EXPORT ----------
+async function exportData() {
+    if (szerkesztes) await mentes();
+    try {
+        const osszes = await dbOsszesAdat();
+        const adat = {
+            nev: document.getElementById('nevInput').value,
+            szervezet: document.getElementById('szervezetInput').value,
+            honap: honapKulcs(ev, ho),
+            honapok: {}
+        };
+        osszes.forEach(h => {
+            adat.honapok[h.kulcs] = { sorok: h.sorok };
+        });
+        adat.sorok = sorok;
+
+        const unixIdo = Math.floor(Date.now() / 1000);
+        const blob = new Blob([JSON.stringify(adat, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `jegyzet_${unixIdo}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+    } catch(e) {
+        alert('❌ Export hiba: ' + e.message);
+    }
+}
+
+// ---------- IMPORT ----------
+function importData(fajl) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const adat = JSON.parse(e.target.result);
+            if (!adat.honapok && !adat.sorok) { alert('Érvénytelen fájl!'); return; }
+            
+            jelszoModal(async function() {
+                try {
+                    if (adat.sorok && !adat.honapok) {
+                        const celHonap = adat.honap || honapKulcs(ev, ho);
+                        const haviAdat = {
+                            kulcs: celHonap,
+                            nev: adat.nev || document.getElementById('nevInput').value,
+                            szervezet: adat.szervezet || document.getElementById('szervezetInput').value,
+                            sorok: adat.sorok
+                        };
+                        await dbMent(haviAdat);
+                        const [e2, h2] = celHonap.split('-');
+                        await honapValtas(parseInt(e2), parseInt(h2) - 1);
+                        alert('✅ Import sikeres!');
+                        return;
+                    }
+                    
+                    if (adat.honapok) {
+                        let aktualisNev = adat.nev || document.getElementById('nevInput').value;
+                        let aktualisSzerv = adat.szervezet || document.getElementById('szervezetInput').value;
+                        
+                        for (const kulcs of Object.keys(adat.honapok)) {
+                            const haviAdat = {
+                                kulcs: kulcs,
+                                nev: aktualisNev,
+                                szervezet: aktualisSzerv,
+                                sorok: adat.honapok[kulcs].sorok
+                            };
+                            await dbMent(haviAdat);
+                        }
+                        
+                        if (adat.honap) {
+                            const [e2, h2] = adat.honap.split('-');
+                            await honapValtas(parseInt(e2), parseInt(h2) - 1);
+                        } else {
+                            await betoltes();
+                            render();
+                        }
+                        alert('✅ Import sikeres! ' + Object.keys(adat.honapok).length + ' hónap betöltve.');
+                        return;
+                    }
+                    
+                    alert('❌ Ismeretlen fájlformátum!');
+                } catch(err) {
+                    alert('❌ Hiba: ' + err.message);
+                }
+            }, 'Add meg a jelszót az importáláshoz');
+        } catch(err) {
+            alert('❌ Hiba a fájl olvasásakor: ' + err.message);
+        }
+    };
+    reader.readAsText(fajl);
+}
+
+// ---------- ESEMÉNYEK ----------
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        await dbMegnyitas();
+    } catch(e) {
+        alert('❌ Nem sikerült megnyitni az adatbázist! A böngésződ nem támogatja az IndexedDB-t.');
+        return;
+    }
+    
+    const most = new Date();
+    ev = most.getFullYear();
+    ho = most.getMonth();
+    
+    sorok = ujSorok();
+    await betoltes();
+    render();
+    
+    document.getElementById('honapValaszto').addEventListener('change', async function() {
+        const [evStr, hoStr] = this.value.split('-');
+        const ujEv = parseInt(evStr);
+        const ujHo = parseInt(hoStr) - 1;
+        if (!isNaN(ujEv) && !isNaN(ujHo) && ujHo >= 0 && ujHo <= 11) {
+            await honapValtas(ujEv, ujHo);
+        }
+    });
+    
+    document.getElementById('editToggleBtn').addEventListener('click', function() {
+        if (szerkesztes) {
+            szerkesztes = false;
+            render();
+            mentes();
+        } else {
+            jelszoModal(function() {
+                szerkesztes = true;
+                render();
+            }, 'Add meg a jelszót a szerkesztéshez');
+        }
+    });
+    
+    document.getElementById('exportBtn').addEventListener('click', exportData);
+    
+    document.getElementById('importBtn').addEventListener('click', function() {
+        document.getElementById('fileInput').click();
+    });
+    document.getElementById('fileInput').addEventListener('change', function(e) {
+        if (this.files && this.files.length > 0) {
+            importData(this.files[0]);
+            this.value = '';
+        }
+    });
+    
+    document.getElementById('jelszoConfirmBtn').addEventListener('click', jelszoEllenorzes);
+    document.getElementById('jelszoCancelBtn').addEventListener('click', jelszoBezar);
+    document.getElementById('jelszoInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') jelszoEllenorzes();
+    });
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') jelszoBezar();
+    });
+    document.getElementById('passwordOverlay').addEventListener('click', function(e) {
+        if (e.target === this) jelszoBezar();
+    });
+    
+    document.querySelectorAll('.szemely-info input').forEach(inp => {
+        inp.addEventListener('input', mentes);
+    });
+});
+</script>
+</body>
+</html>
