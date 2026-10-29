@@ -132,13 +132,15 @@
             color: white;
             transition: 0.3s;
         }
-        .btn-edit { background: #2196F3; }
-        .btn-edit.active { background: #ff9800; }
+        .btn-today { background: #00897b; }
+        .btn-vacations { background: #2196F3; }
+        .btn-edit { background: #ef6c00; }
+        .btn-edit.active { background: #e65100; }
         .btn-add { background: #9C27B0; display: none; }
         .btn-export { background: #27ae60; }
         .btn-export:hover { background: #1e8449; }
-        .btn-import { background: #2980b9; }
-        .btn-import:hover { background: #1a5276; }
+        .btn-import { background: #8e24aa; }
+        .btn-import:hover { background: #6a1b9a; }
         
         .btn-delete {
             background: #e74c3c;
@@ -296,6 +298,7 @@
         }
 
         .date-controls { margin-bottom: 12px; }
+        .date-controls > * { min-width: 0; }
         input, select, button { max-width: 100%; }
         #dailyTitle { font-size: 16px; margin: 12px 0; }
         #dailyTable th, #dailyTable td { border: 1px solid #000; padding: 6px; overflow-wrap: anywhere; }
@@ -319,8 +322,14 @@
 <div class="table-wrap">
     <div class="toolbar date-controls">
         <label for="selectedDate">Megtekintett dátum:</label><input id="selectedDate" type="date">
-        <button class="btn-import" onclick="selectToday()">Ma</button>
-        <button class="btn-edit" onclick="openVacations()">Szabadságok</button>
+        <button class="btn-today" onclick="selectToday()">Ma</button>
+        <button class="btn-vacations" onclick="openVacations()">Szabadságok</button>
+        <button id="editBtn" class="btn-edit" onclick="toggleEdit()">🔒 Szerkesztés</button>
+        <button class="btn-export" onclick="exportData()">📤 Export</button>
+        <button class="btn-import" onclick="importGombKattintas()">📥 Import</button>
+        <button class="btn-add" onclick="addNewPlace()">➕ Új hely hozzáadása</button>
+        <input type="file" id="fileInput" accept=".json" onchange="importFajlKivalasztva(event)">
+        <span id="statusMsg" class="status-msg"></span>
     </div>
     <h2 id="dailyTitle"></h2>
     <table id="dailyTable"><thead><tr><th>Hely</th><th>Délelőtt (AM)</th><th>Délután (PM)</th></tr></thead><tbody id="dailyBody"></tbody></table>
@@ -336,14 +345,7 @@
     </table>
     
     </details>
-    <div class="toolbar">
-        <button id="editBtn" class="btn-edit" onclick="toggleEdit()">🔒 Szerkesztés</button>
-        <button class="btn-add" onclick="addNewPlace()">➕ Új hely hozzáadása</button>
-        <button class="btn-export" onclick="exportData()">📤 Export</button>
-        <button class="btn-import" onclick="importGombKattintas()">📥 Import</button>
-        <input type="file" id="fileInput" accept=".json" onchange="importFajlKivalasztva(event)">
-        <span id="statusMsg" class="status-msg"></span>
-    </div>
+
 </div>
 
 <div class="password-overlay" id="passwordOverlay">
